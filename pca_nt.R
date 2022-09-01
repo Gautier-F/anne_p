@@ -33,7 +33,7 @@ dat[,1] = name
 
 dat_nt = dat[1:26,]
 dat_s63 = dat[27:53,]
-
+dim(dat_s63)
 
 dat_nt = dat_nt[order(dat_nt[,1]),]
 rownames(dat_nt) = 1:26
@@ -81,20 +81,21 @@ dat_s63_na = del_na(dat_s63)
 
 # imputation
 est_ncp = estim_ncp(dat_s63_na, ncp.max = 5)
-imp_dat_s63 = imputePCA(dat_s63_na, ncp=10)
+imp_dat_nt = imputePCA(dat_nt_na, ncp=10)
 sum(is.na(imp_dat))
 sum(is.na(dat_nt_na))
 dim(imp_dat$completeObs)
 
 saveRDS(imp_dat_nt, "imputed_data_NT.rds")
 
-imp_dat = readRDS('imputed_data.rds')
+imp_dat_s63 = readRDS('imputed_data_S63.rds')
 dim(imp_dat_s63$completeObs)
 
 #PCA
-# enlever la tumeur 2028 qui n'a pas de correspondance avec nt
+# enlever la tumeur 2028 de la série S63 qui n'a pas de correspondance avec nt
 pca_s63 = PCA(imp_dat_s63$completeObs[-8,], graph= FALSE)
 
+pca_nt = PCA(imp_dat_nt$completeObs, graph= FALSE)
 
 # Screeplot
 scr_plt = fviz_screeplot(pca, addlabels=TRUE) + labs(title="Screeplot")
@@ -105,7 +106,7 @@ scr_plt
 dev.off()
 
 # données PCA
-var = get_pca_var(pca_s63)
+var = get_pca_var(pca_nt)
 
 cos21 = sort(var$cos2[,1], decreasing = TRUE)
 cosdim1 = as.data.frame(names(cos21))
@@ -134,33 +135,35 @@ coorddim3$coord=coord3
 
 write_xlsx(list("Dim1_cos2"=cosdim1, 
                 "Dim2_cos2"=cosdim2, "Dim3_cos2"=cosdim3,"Dim1_coord"=coorddim1,
-                "Dim2_coord"=coorddim2, "Dim3_coord"=coorddim3), "variables_pca_S63.xlsx")
+                "Dim2_coord"=coorddim2, "Dim3_coord"=coorddim3), "variables_pca_NT.xlsx")
 
 # plot pca
 # # dim 1 / 2
-bi_plt_1_2 = fviz_pca_biplot(pca_s63, geom.ind = "point", pointsize = meta$delta_sens,
+meta = readRDS("meta_clvd_parp.rds")
+str(meta)
+bi_plt_1_2 = fviz_pca_biplot(pca_nt, geom.ind = "point", pointsize = meta$delta_sens,
                          mean.point = FALSE, 
                          select.var = list(name = c(names(cos21)[1:10]), 
                                            names(cos22)[1:10]), 
-                         repel = TRUE) + labs(title = "pca CS")
+                         repel = TRUE) + labs(title = "NT", subtitle = "pointsize: delta_parp_clvd")
 bi_plt_1_2
 
-bi_plt_1_3 = fviz_pca_biplot(pca_s63, axes = c(1,3), geom.ind = "point", pointsize =meta$delta_sens,
+bi_plt_1_3 = fviz_pca_biplot(pca_nt, axes = c(1,3), geom.ind = "point", pointsize =meta$delta_sens,
                          mean.point = FALSE, 
                          select.var = list(name = c(names(cos21)[1:10]), 
                                            names(cos23)[1:10]), 
-                         repel = TRUE) + labs(title = "pca CS")
+                         repel = TRUE) + labs(title = "NT", subtitle = "pointsize: delta_parp_clvd")
 
 bi_plt_1_3
 
-bi_plt_2_3 = fviz_pca_biplot(pca_s63, axes = c(2,3), geom.ind = "point", pointsize = meta$delta_sens,
+bi_plt_2_3 = fviz_pca_biplot(pca_nt, axes = c(2,3), geom.ind = "point", pointsize = meta$delta_sens,
                          mean.point = FALSE, 
                          select.var = list(name = c(names(cos22)[1:10]), 
                                            names(cos23)[1:10]), 
-                         repel = TRUE) + labs(title = "pca CS")
+                         repel = TRUE) + labs(title = "NT", subtitle = "pointsize: delta_parp_clvd")
 bi_plt_2_3
 
-pdf("biplots_S63.pdf")
+pdf("biplots_NT.pdf")
 bi_plt_1_2 
 bi_plt_1_3
 bi_plt_2_3
