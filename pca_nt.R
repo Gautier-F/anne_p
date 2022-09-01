@@ -135,7 +135,7 @@ coorddim3$coord=coord3
 
 write_xlsx(list("Dim1_cos2"=cosdim1, 
                 "Dim2_cos2"=cosdim2, "Dim3_cos2"=cosdim3,"Dim1_coord"=coorddim1,
-                "Dim2_coord"=coorddim2, "Dim3_coord"=coorddim3), "variables_pca_NT.xlsx")
+                "Dim2_coord"=coorddim2, "Dim3_coord"=coorddim3), "variables_pca_S63.xlsx")
 
 # plot pca
 # recupération données histo
@@ -148,19 +148,22 @@ hist = hist[-c(8,18),]
 dim(meta)
 dim(hist)
 meta = readRDS("meta_clvd_parp.rds")
-
-meta = cbind(meta, hist)
-meta = meta[, -5]
-
- for (l in seq_along(meta$Classement)){
-    print(meta$Classement[l])
-#   if (meta$Classement[l] == "LumA"){
-#     meta$Classement[l] = "Lum"
-  }
-#  }
-
-meta[c(24,26),] = "Lum"
 meta
+meta = cbind(meta, hist)
+meta
+meta = meta[, -5]
+meta
+ for (l in seq_along(meta$Classement)){
+
+  if (meta$Classement[l] == "LumA"){
+    meta$Classement[l] = "Lum"
+  }
+ }
+
+meta[c(24,26),5] = "Lum"
+meta
+str(meta)
+
 saveRDS(meta, "meta_data.rds")
 
 
@@ -170,7 +173,7 @@ meta = readRDS("meta_data.rds")
 str(meta)
 hgd()
 bi_plt_1_2 = fviz_pca_biplot(pca_s63, 
-                         col.ind = meta$Classement, legend.title = "Hist", mean.point = FALSE, 
+                          mean.point = FALSE, col.ind = meta$Classement, legend.title = "Hist",
                          select.var = list(name = c(names(cos21)[1:10]), 
                                            names(cos22)[1:10]), 
                           geom.ind = "point", pointsize = meta$delta_sens,
@@ -178,7 +181,7 @@ bi_plt_1_2 = fviz_pca_biplot(pca_s63,
 bi_plt_1_2
 
 bi_plt_1_3 = fviz_pca_biplot(pca_s63, axes = c(1,3), geom.ind = "point", pointsize =meta$delta_sens,
-                         col.ind = meta$Classement, legend.title = "Hist", mean.point = FALSE, 
+                          mean.point = FALSE, col.ind = meta$Classement, legend.title = "Hist",
                          select.var = list(name = c(names(cos21)[1:10]), 
                                            names(cos23)[1:10]), 
                          repel = TRUE) + labs(title = "S63", subtitle = "pointsize: delta_parp_clvd")
@@ -186,15 +189,59 @@ bi_plt_1_3 = fviz_pca_biplot(pca_s63, axes = c(1,3), geom.ind = "point", pointsi
 bi_plt_1_3
 
 bi_plt_2_3 = fviz_pca_biplot(pca_s63, axes = c(2,3), geom.ind = "point", pointsize = meta$delta_sens,
-                         col.ind = meta$Classement, legend.title = "Hist", mean.point = FALSE, 
+                        mean.point = FALSE,  col.ind = meta$Classement, legend.title = "Hist", 
                          select.var = list(name = c(names(cos22)[1:10]), 
                                            names(cos23)[1:10]), 
                          repel = TRUE) + labs(title = "S63", subtitle = "pointsize: delta_parp_clvd")
 bi_plt_2_3
 
-pdf("biplots_S63.pdf")
+pdf("biplots_s63_delta.pdf")
 bi_plt_1_2 
 bi_plt_1_3
 bi_plt_2_3
 dev.off()
 
+
+hgd()
+bi_plt_1_2 = fviz_pca_biplot(pca_s63, 
+                          mean.point = FALSE, col.ind = meta$Classement, legend.title = "Hist",
+                         select.var = list(name = c(names(cos21)[1:10]), 
+                                           names(cos22)[1:10]), 
+                          geom.ind = "point", pointsize = meta$sens_s63,
+                         repel = TRUE) + labs(title = "S63", subtitle = "pointsize: sens_s63")
+bi_plt_1_2
+
+bi_plt_1_3 = fviz_pca_biplot(pca_s63, axes = c(1,3), geom.ind = "point", pointsize =meta$sens_s63,
+                          mean.point = FALSE, col.ind = meta$Classement, legend.title = "Hist",
+                         select.var = list(name = c(names(cos21)[1:10]), 
+                                           names(cos23)[1:10]), 
+                         repel = TRUE) + labs(title = "S63", subtitle = "pointsize: sens_s63")
+
+bi_plt_1_3
+
+bi_plt_2_3 = fviz_pca_biplot(pca_s63, axes = c(2,3), geom.ind = "point", pointsize = meta$sens_s63,
+                        mean.point = FALSE,  col.ind = meta$Classement, legend.title = "Hist", 
+                         select.var = list(name = c(names(cos22)[1:10]), 
+                                           names(cos23)[1:10]), 
+                         repel = TRUE) + labs(title = "S63", subtitle = "pointsize: sens_s63")
+bi_plt_2_3
+
+pdf("biplots_s63.pdf")
+bi_plt_1_2 
+bi_plt_1_3
+bi_plt_2_3
+dev.off()
+
+# correl sensibilité initiale / delta
+hgd()
+
+p1 = ggplot(data = meta, aes(x = meta$sens_nt, y = meta$delta_sens)) +geom_point() + geom_smooth(method = "lm")+ labs(title = "%nt_delta", subtitle = "P = 0.2")
+p1
+p2 = ggplot(data = meta, aes(x = meta$sens_nt, y = meta$sens_s63)) +geom_point() + geom_smooth(method = "lm") + labs(title = "%nt_%s63", subtitle = "P = 0.6")
+p2
+cor.test(meta$sens_nt,meta$delta_sens)
+
+pdf("correlation_nt_s63.pdf")
+p1 
+p2
+dev.off()
