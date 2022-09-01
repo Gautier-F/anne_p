@@ -106,7 +106,7 @@ scr_plt
 dev.off()
 
 # données PCA
-var = get_pca_var(pca_nt)
+var = get_pca_var(pca_s63)
 
 cos21 = sort(var$cos2[,1], decreasing = TRUE)
 cosdim1 = as.data.frame(names(cos21))
@@ -138,71 +138,63 @@ write_xlsx(list("Dim1_cos2"=cosdim1,
                 "Dim2_coord"=coorddim2, "Dim3_coord"=coorddim3), "variables_pca_NT.xlsx")
 
 # plot pca
-# # dim 1 / 2
+# recupération données histo
+
+hist = read.xlsx("data/SELECTION PROJET MCL1-03.2022.xlsx", sheet = 6)
+dim(hist)
+# 2028 écartée 2044 écartée,
+hist = hist[-c(8,18),]
+
+dim(meta)
+dim(hist)
 meta = readRDS("meta_clvd_parp.rds")
+
+meta = cbind(meta, hist)
+meta = meta[, -5]
+
+ for (l in seq_along(meta$Classement)){
+    print(meta$Classement[l])
+#   if (meta$Classement[l] == "LumA"){
+#     meta$Classement[l] = "Lum"
+  }
+#  }
+
+meta[c(24,26),] = "Lum"
+meta
+saveRDS(meta, "meta_data.rds")
+
+
+
+# # dim 1 / 2
+meta = readRDS("meta_data.rds")
 str(meta)
-bi_plt_1_2 = fviz_pca_biplot(pca_nt, geom.ind = "point", pointsize = meta$delta_sens,
-                         mean.point = FALSE, 
+hgd()
+bi_plt_1_2 = fviz_pca_biplot(pca_s63, 
+                         col.ind = meta$Classement, legend.title = "Hist", mean.point = FALSE, 
                          select.var = list(name = c(names(cos21)[1:10]), 
                                            names(cos22)[1:10]), 
-                         repel = TRUE) + labs(title = "NT", subtitle = "pointsize: delta_parp_clvd")
+                          geom.ind = "point", pointsize = meta$delta_sens,
+                         repel = TRUE) + labs(title = "S63", subtitle = "pointsize: delta_parp_clvd")
 bi_plt_1_2
 
-bi_plt_1_3 = fviz_pca_biplot(pca_nt, axes = c(1,3), geom.ind = "point", pointsize =meta$delta_sens,
-                         mean.point = FALSE, 
+bi_plt_1_3 = fviz_pca_biplot(pca_s63, axes = c(1,3), geom.ind = "point", pointsize =meta$delta_sens,
+                         col.ind = meta$Classement, legend.title = "Hist", mean.point = FALSE, 
                          select.var = list(name = c(names(cos21)[1:10]), 
                                            names(cos23)[1:10]), 
-                         repel = TRUE) + labs(title = "NT", subtitle = "pointsize: delta_parp_clvd")
+                         repel = TRUE) + labs(title = "S63", subtitle = "pointsize: delta_parp_clvd")
 
 bi_plt_1_3
 
-bi_plt_2_3 = fviz_pca_biplot(pca_nt, axes = c(2,3), geom.ind = "point", pointsize = meta$delta_sens,
-                         mean.point = FALSE, 
+bi_plt_2_3 = fviz_pca_biplot(pca_s63, axes = c(2,3), geom.ind = "point", pointsize = meta$delta_sens,
+                         col.ind = meta$Classement, legend.title = "Hist", mean.point = FALSE, 
                          select.var = list(name = c(names(cos22)[1:10]), 
                                            names(cos23)[1:10]), 
-                         repel = TRUE) + labs(title = "NT", subtitle = "pointsize: delta_parp_clvd")
+                         repel = TRUE) + labs(title = "S63", subtitle = "pointsize: delta_parp_clvd")
 bi_plt_2_3
 
-pdf("biplots_NT.pdf")
+pdf("biplots_S63.pdf")
 bi_plt_1_2 
 bi_plt_1_3
 bi_plt_2_3
 dev.off()
 
-
-# indication du nom des tumeurs
-org_name = rownames(imp_dat$completeObs)
-org_name
-list_name = strsplit(org_name, "-", fixed = T)
-name = c()
-for (l in seq_along(list_name)){
-  name[l]=list_name[[l]][3]
-}
-name = trimws(name)
-name =  paste(c(rep('', 26), rep('_', 27)), name, sep = "")
-name
-rownames(pca$ind$coord) = name
- p_1_2 = fviz_pca_ind(pca, pointsize = clvd_parp,
-                         col.ind = tnt, pointshape = 19, legend.title = "Treatment",
-                         mean.point = FALSE, 
-                         
-                         repel = TRUE) + labs(title = "pca CS")
-p_2_3 = fviz_pca_ind(pca, axes = c(2,3),pointsize = clvd_parp,
-                         col.ind = tnt, pointshape = 19, legend.title = "Treatment",
-                         mean.point = FALSE, 
-                         repel = TRUE) + labs(title = "pca CS")
-                         
-p_1_3 = fviz_pca_ind(pca, axes = c(1,3),pointsize = clvd_parp,
-                         col.ind = tnt, pointshape = 19, legend.title = "Treatment",
-                         mean.point = FALSE,  
-                         repel = TRUE) + labs(title = "pca CS")
-pdf("pca_ind_named.pdf")
-p_1_2
-p_1_3
-p_2_3
-dev.off()
-
-
-
-dim(pca$ind)
-p_1_2
